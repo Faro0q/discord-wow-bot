@@ -24,7 +24,7 @@ async def on_message(message):
     
     # display item level for a user
     if message.content.startswith('!itemlevel'):
-        access_token = create_access_token(os.getenv('client_id'), os.getenv('client_secret'))
+        access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
         updated_dict = get_item_level(access_token)
         embed=discord.Embed(
             title="List of Users Item Level: Thrall",
@@ -99,4 +99,4 @@ def create_access_token(client_id, client_secret, region = 'us'):
     return json_response['access_token']
 
 
-client.run(os.getenv('token'))
+client.run(os.environ["token"])

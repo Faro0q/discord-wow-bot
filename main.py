@@ -27,8 +27,8 @@ async def on_message(message):
         access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
         updated_dict = namespace_profile_us(access_token, "", 'equipped_item_level')
 
-        title="List of Users Item Level: Thrall",
-        color=discord.Color.from_rgb(68,128,168),
+        title="List of Users Item Level: Thrall"
+        color=discord.Color.from_rgb(68,128,168)
         description="This will display your current item level"
         embed_key="Name"
         embed_value="ilvl"
@@ -40,8 +40,8 @@ async def on_message(message):
         access_token = create_access_token(os.getenv('client_id'), os.getenv('client_secret'))
         updated_dict = namespace_profile_us(access_token, "/pvp-bracket/2v2", 'rating')
         
-        title="List of Users 2v2 Arena Rating: Thrall",
-        color=discord.Color.from_rgb(176, 9, 9),
+        title="List of Users 2v2 Arena Rating: Thrall"
+        color=discord.Color.from_rgb(176, 9, 9)
         description="This will display your arena rating"
         embed_key="Name"
         embed_value="Rating"

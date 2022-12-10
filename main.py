@@ -10,7 +10,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-user_dict = {'farooqq':'0', 'zuruhgar':'0', 'btracks':'0', 'meatsmoothie':'0', 'setralanat':'0', 'rhcisbae':'0'}
+user_dict = {'farooqq':'0', 'zuruhgar':'0', 'btracks':'0', 'meatsmoothie':'0', 'setralanat':'0', 'rhcisbae':'0', 'takisbae':'0'}
 
 @client.event
 async def on_ready():
@@ -27,7 +27,7 @@ async def on_message(message):
         access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
         updated_dict = namespace_profile_us(access_token, "", 'equipped_item_level')
 
-        title="List of Users Item Level: Thrall"
+        title="List of Users Item Level(PvE): Thrall"
         color=discord.Color.from_rgb(68,128,168)
         description="This will display your current item level"
         embed_key="Name"
@@ -39,10 +39,18 @@ async def on_message(message):
     if message.content.startswith('!arena'):
         access_token = create_access_token(os.getenv('client_id'), os.getenv('client_secret'))
         updated_dict = namespace_profile_us(access_token, "/pvp-bracket/2v2", 'rating')
-        
         title="List of Users 2v2 Arena Rating: Thrall"
         color=discord.Color.from_rgb(176, 9, 9)
-        description="This will display your arena rating"
+        description="This will display 2v2 your arena rating"
+        embed_key="Name"
+        embed_value="Rating"
+        embed = get_embed(title, color, description, embed_key, embed_value, updated_dict)
+        await message.channel.send(embed=embed)
+
+        updated_dict = namespace_profile_us(access_token, "/pvp-bracket/3v3", 'rating')
+        title="List of Users 3v3 Arena Rating: Thrall"
+        color=discord.Color.from_rgb(176, 9, 176)
+        description="This will display your 3v3 arena rating"
         embed_key="Name"
         embed_value="Rating"
         embed = get_embed(title, color, description, embed_key, embed_value, updated_dict)
@@ -54,8 +62,11 @@ def namespace_profile_us(wow_token, arena_url, json_var):
         url = f'https://us.api.blizzard.com/profile/wow/character/thrall/{user}{arena_url}?namespace=profile-us&locale=en_US&access_token={wow_token}'
         try:
             response = requests.get(url)
-            users_item_lvl = response.json()[json_var]
-            user_dict[user] = str(users_item_lvl)
+            users_value = response.json()[json_var]
+            if(json_var == "equipped_item_level" and users_value > int(user_dict.get(user))): #Checking if the previous item level was greater than the one equiped for pvp
+                user_dict[user] = str(users_value)
+            if(json_var == "rating"):
+                user_dict[user] = str(users_value)
         except KeyError as e:
             user_dict[user] = str("0")
             print('Json not found:', e)

@@ -27,8 +27,8 @@ async def on_message(message):
     # display item level for a user
     if message.content.startswith('!itemlevel'):
         access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
-        loop = asyncio.get_event_loop()
-        updated_dict = loop.run_until_complete(namespace_profile_us(access_token, "", 'equipped_item_level', 'ilvl')) # run the coroutine in the event loop
+        # loop = asyncio.get_event_loop()
+        updated_dict = await client.loop.create_task(namespace_profile_us(access_token, "", 'equipped_item_level', 'ilvl')) # run the coroutine in the event loop
         title="List of Users Item Level(PvE): Thrall"
         color=discord.Color.from_rgb(68,128,168)
         description="This will display your current item level"
@@ -40,21 +40,20 @@ async def on_message(message):
     if message.content.startswith('!arena'):
         access_token = create_access_token(os.getenv('client_id'), os.getenv('client_secret'))
         loop = asyncio.get_event_loop()
-        updated_dict = loop.run_until_complete(namespace_profile_us(access_token, "/pvp-bracket/2v2", 'rating', '2v2'))
+        updated_dict =await client.loop.create_task(namespace_profile_us(access_token, "/pvp-bracket/2v2", 'rating', '2v2'))
         title="List of Users 2v2 Arena Rating: Thrall"
         color=discord.Color.from_rgb(176, 9, 9)
         description="This will display 2v2 your arena rating"
-        embed_key="Name"
         embed_value="Rating"
-        embed = get_embed(title, color, description, embed_key, embed_value, updated_dict, '2v2')
+        embed = get_embed(title, color, description, embed_value, updated_dict, '2v2')
         await message.channel.send(embed=embed)
 
         loop = asyncio.get_event_loop()
-        updated_dict = loop.run_until_complete(namespace_profile_us(access_token, "/pvp-bracket/3v3", 'rating', '3v3'))
+        updated_dict = await client.loop.create_task(namespace_profile_us(access_token, "/pvp-bracket/3v3", 'rating', '3v3'))
         title="List of Users 3v3 Arena Rating: Thrall"
         color=discord.Color.from_rgb(176, 9, 176)
         description="This will display your 3v3 arena rating"
-        embed = get_embed(title, color, description, embed_key, embed_value, updated_dict, '3v3')
+        embed = get_embed(title, color, description, embed_value, updated_dict, '3v3')
         await message.channel.send(embed=embed)
 
 
@@ -71,15 +70,20 @@ async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
 
         for response in responses:
             json_data = await response.json()
-            user_name = json_data['name'].lower()
-            # get the JSON data from the response
             users_value = json_data.get(json_var, 0)
-            if dict_value == "ilvl" and users_value < user_dict[user_name][dict_value]:
-                # skip updating the user_dict dictionary for this user
+            if users_value == 0:
                 continue
-
-            # update the value in the user_dict dictionary using the key_mapping dictionary
-            user_dict[user_name][dict_value] = users_value
+            if dict_value == "ilvl":
+                user_name = json_data['name'].lower()
+                if users_value < user_dict[user_name][dict_value]:
+                    # skip updating the user_dict dictionary for this user
+                    continue
+                else:
+                    user_dict[user_name][dict_value] = users_value
+            else:
+                user_name = json_data['character']['name'].lower()
+                # update the value in the user_dict dictionary using the key_mapping dictionary
+                user_dict[user_name][dict_value] = users_value
 
         # sort the dictionary by value in descending order
         sorted_dict = sorted(user_dict, key=lambda x: user_dict[x][dict_value], reverse=True)
@@ -87,12 +91,12 @@ async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
         new_dict = dict((key, user_dict[key]) for key in sorted_dict)
         return new_dict
 
-def get_embed(title, color, description, embed_key, embed_value, updated_dict, list_index):
+def get_embed(title, color, description, embed_value, updated_dict, list_index):
 
     display_list = []
     embed_key="Name"
     for val in updated_dict:
-        display_list.append(user_dict[val][list_index])
+        display_list.append(str(user_dict[val][list_index]))
     
     embed=discord.Embed(
             title=title,

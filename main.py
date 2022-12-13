@@ -84,7 +84,7 @@ async def on_message(message):
     
     if message.content.startswith('!delete event'):
         userMessage = message.content.split(" ")
-        wrongFormat = event_create_format_checker(userMessage)
+        wrongFormat = event_delete_format_checker(userMessage)
         if(wrongFormat):
             await message.channel.send(wrongFormat)
         else:

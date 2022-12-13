@@ -88,8 +88,9 @@ async def on_message(message):
         if(wrongFormat):
             await message.channel.send(wrongFormat)
         else:
-            EVENTS.pop(userMessage[2]-1)
-            await message.channel.send(f"Event: {EVENTS[userMessage[2]-1]} has been deleted.")
+            event_num = int(userMessage[2]-1)
+            deleted = EVENTS.pop(event_num)
+            await message.channel.send(f"Event: {deleted} has been deleted.")
     
 
 

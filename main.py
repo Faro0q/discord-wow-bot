@@ -12,7 +12,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae']}
+user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'gemisonamue', 'farooqin', 'heracleez', 'raknaronarn']}
 
 @client.event
 async def on_ready():

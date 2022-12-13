@@ -86,7 +86,7 @@ async def on_message(message):
         userMessage = message.content.split(" ")
         wrongFormat = event_create_format_checker(userMessage)
         if(wrongFormat):
-            await message.channel.send("Incorrect format. Type 'event help' to see the correct format.")
+            await message.channel.send(wrongFormat)
         else:
             EVENTS.pop(userMessage[2]-1)
             await message.channel.send(f"Event: {EVENTS[userMessage[2]-1]} has been deleted.")

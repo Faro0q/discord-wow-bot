@@ -59,6 +59,11 @@ async def on_message(message):
         embed = get_embed(title, color, description, embed_value, updated_dict, '3v3')
         await message.channel.send(embed=embed)
 
+    # Events config
+    if message.content.startswith('!event help'):
+        await message.channel.send("To create an event, please use this format:\n `!create event CSGO 06/08 09:00 @csnerd`")
+        await message.channel.send("To delete an event, please use this format:\n `!delete event 1`")
+
     if message.content.startswith('!events'):
         if(len(EVENTS) == 0):
             await message.channel.send("No events")
@@ -67,18 +72,25 @@ async def on_message(message):
             await message.channel.send('Events:\n')
             for x in EVENTS:
                 await message.channel.send(str(x))
-    
-    if message.content.startswith('!event help'):
-        await message.channel.send("To create an event, please use this format:\n `create CSGO 06/08 09:00 @csnerd`")
 
-    if message.content.startswith('!create'):
+    if message.content.startswith('!create event'):
         userMessage = message.content.split(" ")
-        wrongFormat = formatChecker(userMessage)
+        wrongFormat = event_create_format_checker(userMessage)
         if(wrongFormat):
             await message.channel.send(wrongFormat)
         else:
             newEvent(userMessage, message.author)
-            await message.channel.send("Event added! Type 'events' to list all the events")
+            await message.channel.send("Event added! Type '!events' to list all the events")
+    
+    if message.content.startswith('!delete event'):
+        userMessage = message.content.split(" ")
+        wrongFormat = event_create_format_checker(userMessage)
+        if(wrongFormat):
+            await message.channel.send("Incorrect format. Type 'event help' to see the correct format.")
+        else:
+            EVENTS.pop(userMessage[2]-1)
+            await message.channel.send(f"Event: {EVENTS[userMessage[2]-1]} has been deleted.")
+    
 
 
 async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
@@ -132,22 +144,38 @@ def get_embed(title, color, description, embed_value, updated_dict, list_index):
     embed.add_field(name=embed_value, value='\n'.join(display_list), inline="True")
     return embed
 
-def formatChecker(msg):
-    # Correct:
-    # create Valorant 03/02 09:00 @gello
+def event_delete_format_checker(msg):
+    # !delete event 1
 
-    if(len(msg) < 4):
+    if(len(msg) != 3):
         return "Incorrect format. Type 'event help' to see the correct format."
+    
+    event_num = msg[2]
+    event_bool = event_num.isnumeric() # Check if its a num
+    
+    if not (event_bool):
+        return "Event doesn't exist, make sure to use the correct format and event exists"
+    if event_num >= len(EVENTS):
+        return "Event doesn't exist, make sure the event exist when typing '!events'" 
+    else:
+        return ""
 
-    date = msg[2]
-    time = msg[3]
+def event_create_format_checker(msg):
+    # Correct:
+    # create event Valorant 03/02 09:00 @gello
+
+    if(len(msg) < 5):
+        return "Incorrect format. Type '!event help' to see the correct format."
+
+    date = msg[3]
+    time = msg[4]
     dateReg = re.search("^(0?[1-9]|1[012])/[1-2][0-9]|30|31|[0][1-9]$", date) # Check if date is valid
     timeReg = re.search("^(0[1-9]|1[0-9]|2[0123]):[0-5][0-9]$", time) # Check if time is valid
     
     if not (dateReg):
-        return "Incorrect date format. Type 'event help' to see the correct format."
+        return "Incorrect date format. Type '!event help' to see the correct format."
     if not (timeReg):
-        return "Incorrect time format. Type 'event help' to see the correct format."
+        return "Incorrect time format. Type '!event help' to see the correct format."
     else:
         return ""
 
@@ -158,7 +186,7 @@ def increment():
 def newEvent(msg, author):
     # create csgo 9:00 @someone
     newEvent = ""
-    for x in range(1, len(msg)):
+    for x in range(2, len(msg)):
         newEvent += msg[x] + " "
     
     event = "**" + newEvent.strip() + "**"

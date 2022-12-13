@@ -4,6 +4,7 @@ import requests
 import datetime
 import aiohttp
 import asyncio
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,7 +13,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'gemisonamue', 'farooqin', 'heracleez', 'raknaronarn']}
+EVENTS = []
+COUNT = 1
+user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez']}
 
 @client.event
 async def on_ready():
@@ -55,6 +58,27 @@ async def on_message(message):
         description="This will display your 3v3 arena rating"
         embed = get_embed(title, color, description, embed_value, updated_dict, '3v3')
         await message.channel.send(embed=embed)
+
+    if message.content.startswith('!events'):
+        if(len(EVENTS) == 0):
+            await message.channel.send("No events")
+        else:
+            # output = globalCount + 
+            await message.channel.send('Events:\n')
+            for x in EVENTS:
+                await message.channel.send(str(x))
+    
+    if message.content.startswith('!event help'):
+        await message.channel.send("To create an event, please use this format:\n `create CSGO 06/08 09:00 @csnerd`")
+
+    if message.content.startswith('!create'):
+        userMessage = message.content.split(" ")
+        wrongFormat = formatChecker(userMessage)
+        if(wrongFormat):
+            await message.channel.send(wrongFormat)
+        else:
+            newEvent(userMessage, message.author)
+            await message.channel.send("Event added! Type 'events' to list all the events")
 
 
 async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
@@ -107,6 +131,41 @@ def get_embed(title, color, description, embed_value, updated_dict, list_index):
     embed.add_field(name=embed_key, value='\n'.join(updated_dict), inline="True")
     embed.add_field(name=embed_value, value='\n'.join(display_list), inline="True")
     return embed
+
+def formatChecker(msg):
+    # Correct:
+    # create Valorant 03/02 09:00 @gello
+
+    if(len(msg) < 4):
+        return "Incorrect format. Type 'event help' to see the correct format."
+
+    date = msg[2]
+    time = msg[3]
+    dateReg = re.search("^(0?[1-9]|1[012])/[1-2][0-9]|30|31|[0][1-9]$", date) # Check if date is valid
+    timeReg = re.search("^(0[1-9]|1[0-9]|2[0123]):[0-5][0-9]$", time) # Check if time is valid
+    
+    if not (dateReg):
+        return "Incorrect date format. Type 'event help' to see the correct format."
+    if not (timeReg):
+        return "Incorrect time format. Type 'event help' to see the correct format."
+    else:
+        return ""
+
+def increment():
+    global COUNT
+    COUNT = COUNT+1
+
+def newEvent(msg, author):
+    # create csgo 9:00 @someone
+    newEvent = ""
+    for x in range(1, len(msg)):
+        newEvent += msg[x] + " "
+    
+    event = "**" + newEvent.strip() + "**"
+    author = "**" + str(author) + "**"
+    EVENTS.append(str(COUNT) + ". " + event + " created by: " + author)
+    increment()
+    print(EVENTS)
 
 def create_access_token(client_id, client_secret, region = 'us'):
     data = { 'grant_type': 'client_credentials' }

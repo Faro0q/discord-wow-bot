@@ -156,7 +156,7 @@ def event_delete_format_checker(msg):
     
     if not (event_bool):
         return "Provided event number is not numeric. Please provide values of 1, 2, 3, etc"
-    if int(event_num) >= len(EVENTS):
+    if int(event_num) > len(EVENTS):
         return "Event doesn't exist, make sure the event exist when typing '!events'" 
     else:
         return ""

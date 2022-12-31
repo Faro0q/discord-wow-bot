@@ -17,7 +17,7 @@ client = discord.Client(intents=intents)
 EVENTS_START_TIME = []
 EVENTS = []
 COUNT = 1
-user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0, 'mythic': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez']}
+user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0, 'mythic+': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez']}
 
 @client.event
 async def on_ready():
@@ -32,7 +32,7 @@ async def on_message(message):
     # display item level for a user
     if message.content.startswith('!itemlevel'):
         access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
-        # loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
         updated_dict = await client.loop.create_task(namespace_profile_us(access_token, "", 'equipped_item_level', 'ilvl')) # run the coroutine in the event loop
         title="List of Users Item Level(PvE): Thrall"
         color=discord.Color.from_rgb(68,128,168)
@@ -64,13 +64,13 @@ async def on_message(message):
     # display mythic score for a user
     if message.content.startswith('!mythic'):
         access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
-        # loop = asyncio.get_event_loop()
-        updated_dict = await client.loop.create_task(namespace_profile_us(access_token, "/mythic-keystone-profile", 'current_mythic_rating', 'mythic')) # run the coroutine in the event loop
+        loop = asyncio.get_event_loop()
+        updated_dict = await client.loop.create_task(namespace_profile_us(access_token, "/mythic-keystone-profile", 'current_mythic_rating', 'mythic+'))
         title="List of Users Mythic+ score: Thrall"
         color=discord.Color.from_rgb(0,255,255)
         description="This will display your mythic score"
         embed_value="Mythic+"
-        embed = get_embed(title, color, description, embed_value, updated_dict, 'mythic')
+        embed = get_embed(title, color, description, embed_value, updated_dict, 'mythic+')
         await message.channel.send(embed=embed)
 
     # Events config
@@ -126,7 +126,7 @@ async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
 
         for response in responses:
             json_data = await response.json()
-            users_value = json_data.get(json_var['rating'], 0)
+            users_value = json_data.get(json_var, 0)
             if users_value == 0:
                 continue
             if dict_value == "ilvl":
@@ -136,6 +136,9 @@ async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
                     continue
                 else:
                     user_dict[user_name][dict_value] = users_value
+            elif dict_value == "mythic+":
+                user_name = json_data['character']['name'].lower()
+                user_dict[user_name][dict_value] = round(users_value['rating'])
             else:
                 user_name = json_data['character']['name'].lower()
                 # update the value in the user_dict dictionary using the key_mapping dictionary

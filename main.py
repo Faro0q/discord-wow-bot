@@ -1,10 +1,11 @@
 import os
 import discord
+import aiohttp
 import requests
 import datetime
-import aiohttp
 import asyncio
 import re
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,9 +14,10 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+EVENTS_START_TIME = []
 EVENTS = []
 COUNT = 1
-user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez']}
+user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0, 'mythic': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez']}
 
 @client.event
 async def on_ready():
@@ -59,6 +61,18 @@ async def on_message(message):
         embed = get_embed(title, color, description, embed_value, updated_dict, '3v3')
         await message.channel.send(embed=embed)
 
+    # display mythic score for a user
+    if message.content.startswith('!mythic'):
+        access_token = create_access_token(os.environ["client_id"], os.environ["client_secret"])
+        # loop = asyncio.get_event_loop()
+        updated_dict = await client.loop.create_task(namespace_profile_us(access_token, "/mythic-keystone-profile", 'current_mythic_rating', 'mythic')) # run the coroutine in the event loop
+        title="List of Users Mythic+ score: Thrall"
+        color=discord.Color.from_rgb(0,255,255)
+        description="This will display your mythic score"
+        embed_value="Mythic+"
+        embed = get_embed(title, color, description, embed_value, updated_dict, 'mythic')
+        await message.channel.send(embed=embed)
+
     # Events config
     if message.content.startswith('!event help'):
         await message.channel.send("To create an event, please use this format:\n `!create event CSGO 06/08 09:00 @csnerd`")
@@ -80,6 +94,7 @@ async def on_message(message):
             await message.channel.send(wrongFormat)
         else:
             newEvent(userMessage, message.author)
+            EVENTS_START_TIME.append(time.time())
             await message.channel.send("Event added! Type '!events' to list all the events")
     
     if message.content.startswith('!delete event'):
@@ -90,9 +105,13 @@ async def on_message(message):
         else:
             event_num = int(userMessage[2])-1
             deleted = EVENTS.pop(event_num)
-            await message.channel.send(f"Event **DELETED**: `{deleted}`.")
+            COUNT-1
+            await message.channel.send(f"**EVENT DELETED**: `{deleted}`.")
     
-
+def check_event_start_time():
+    for time in EVENTS_START_TIME:
+        if time == time.time():
+            return ""
 
 async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
     # iterate over the keys in the user_dict dictionary
@@ -107,7 +126,7 @@ async def namespace_profile_us(wow_token, arena_url, json_var, dict_value):
 
         for response in responses:
             json_data = await response.json()
-            users_value = json_data.get(json_var, 0)
+            users_value = json_data.get(json_var['rating'], 0)
             if users_value == 0:
                 continue
             if dict_value == "ilvl":

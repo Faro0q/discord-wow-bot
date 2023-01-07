@@ -17,7 +17,7 @@ client = discord.Client(intents=intents)
 EVENTS_START_TIME = []
 EVENTS = []
 COUNT = 1
-user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0, 'mythic+': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez']}
+user_dict = {user: {'ilvl': 0, '2v2': 0, '3v3': 0, 'mythic+': 0} for user in ['farooqq', 'zuruhgar', 'btracks', 'meatsmoothie', 'setralanat', 'rhcisbae', 'takisbae', 'genisonamue', 'farooqin', 'heracleez', 'saycheese']}
 
 @client.event
 async def on_ready():
